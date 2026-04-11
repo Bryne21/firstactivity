@@ -127,7 +127,7 @@ $initial  = strtoupper(substr($name, 0, 1));
             <a href="viewemployee.php" class="btn btn-green">View Employee List</a>
             
             <a href="main.php" class="btn btn-gray">Back</a> 
-            <a href="logout.php" class="btn btn-red">Logout</a>
+            <a href="logout.php" class="btn btn-red">Logout a</a>
         </div>
     </div>
 
