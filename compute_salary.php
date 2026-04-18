@@ -141,7 +141,7 @@ function calculatePayroll(input, id) {
     if (period === "1-15" && gross > 0) {
         sss = gross * 0.045;             // 4.5% SSS
         philhealth = gross * 0.02;      // 2% PhilHealth
-        pagibig = gross * 0.03;               // Fixed Pag-IBIG
+        pagibig = gross * 0.02;               // Fixed Pag-IBIG
     }
 
     const totalDeductions = sss + philhealth + pagibig;
