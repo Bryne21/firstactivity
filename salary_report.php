@@ -5,14 +5,13 @@ if (!isset($_SESSION["fldUsername"])) { header("Location: loginform.php"); exit;
 $conn = new mysqli("localhost", "root", "root", "test_db");
 if ($conn->connect_error) { die("Connection failed: " . $conn->connect_error); }
 
-// 1. Capture filters (Handles both Search button and Redirect from Save)
+// 1. Capture filters
 $selected_month = $_POST['month_select'] ?? $_GET['month'] ?? date('F');
 $selected_year = $_POST['year_select'] ?? $_GET['year'] ?? date('Y');
 $selected_period = $_POST['period_select'] ?? $_GET['period'] ?? '1-15';
 
 // 2. SQL Query Logic
 if ($selected_period == '1-31') {
-    // FULL MONTH: Group by employee and SUM all columns
     $sql = "SELECT employee_name, 
                    MAX(rate_per_day) as rate_per_day, 
                    SUM(days_worked) as total_days, 
@@ -25,7 +24,6 @@ if ($selected_period == '1-31') {
             GROUP BY employee_name 
             ORDER BY employee_name ASC";
 } else {
-    // SPECIFIC PERIOD (1-15 or 16-31)
     $sql = "SELECT employee_name, 
                    rate_per_day, 
                    days_worked as total_days, 
@@ -53,7 +51,7 @@ $result = $conn->query($sql);
         .container { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); max-width: 1300px; margin: auto; }
         h2 { text-align: center; color: #1a73e8; margin-bottom: 20px; text-transform: uppercase; }
         .filter-section { background: #f8fbff; padding: 20px; border-radius: 10px; display: flex; gap: 15px; justify-content: center; align-items: center; border: 1px solid #d4e6f1; margin-bottom: 30px; }
-        .custom-select { padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-weight: bold; }
+        .custom-select { padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-weight: bold; margin: 0 5px; }
         table { width: 100%; border-collapse: collapse; background: white; font-size: 13px; }
         th { background: #1a73e8; color: white; padding: 12px; }
         td { padding: 12px; border-bottom: 1px solid #eee; text-align: center; }
@@ -122,6 +120,9 @@ $result = $conn->query($sql);
                 <?php 
                 $grand_total = 0;
                 while($row = $result->fetch_assoc()): 
+                    // This handles the display of the name
+                    $display_name = !empty($row['employee_name']) ? $row['employee_name'] : "Unknown Employee";
+                    
                     $rate = $row['rate_per_day'];
                     $days = $row['total_days'];
                     $gross = $rate * $days;
@@ -133,7 +134,9 @@ $result = $conn->query($sql);
                     $grand_total += $net;
                 ?>
                 <tr>
-                    <td style="text-align: left;"><strong><?= htmlspecialchars($row['employee_name']) ?></strong></td>
+                    <td style="text-align: left;">
+                        <strong><?= htmlspecialchars($display_name) ?></strong>
+                    </td>
                     <td>₱<?= number_format($rate, 2) ?></td>
                     <td><?= $days ?></td>
                     <td>₱<?= number_format($gross, 2) ?></td>
@@ -150,9 +153,7 @@ $result = $conn->query($sql);
             </tbody>
         </table>
 
-        <div style="margin-top: 20px; text-align: right;">
-            <button onclick="window.print()" class="btn-filter no-print" style="background: #34a853;">Print Report</button>
-        </div>
+ 
     <?php else: ?>
         <div style="text-align:center; padding: 40px; border: 2px dashed #ccc; border-radius: 10px; background: white;">
             <h3>No Records Found</h3>

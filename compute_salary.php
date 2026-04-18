@@ -57,6 +57,10 @@ $max_weekdays = countWeekdays($month, $year, $period);
     <h2>Payroll Computation</h2>
 
     <form method="POST" action="save_to_db.php" id="payrollForm">
+        <input type="hidden" name="month_select" value="<?= $month ?>">
+        <input type="hidden" name="year_select" value="<?= $year ?>">
+        <input type="hidden" name="period_select" value="<?= $period ?>">
+
         <div class="controls">
             <select name="year_val" class="custom-select" onchange="this.form.action=''; this.form.submit();">
                 <option value="2026" <?= $year == '2026' ? 'selected' : '' ?>>2026</option>
@@ -82,19 +86,24 @@ $max_weekdays = countWeekdays($month, $year, $period);
                     <th>Days Worked <span class="max-indicator">Max: <?= $max_weekdays ?></span></th>
                     <th>SSS (4.5%)</th>
                     <th>PhilHealth (2%)</th>
-                    <th>Pag-IBIG</th>
+                    <th>Pag-IBIG (3%)</th>
                     <th>Net Salary</th>
                 </tr>
             </thead>
             <tbody>
-                <?php while($row = $result->fetch_assoc()): $id = $row['employeeid']; ?>
+                <?php while($row = $result->fetch_assoc()): 
+                    $id = $row['employeeid']; 
+                    $fullName = $row['firstname']." ".$row['lastname'];
+                ?>
                 <tr>
                     <td style="text-align: left;">
-                        <strong><?= $row['firstname']." ".$row['lastname']; ?></strong>
+                        <strong><?= $fullName; ?></strong>
                         <input type="hidden" name="emp_id[]" value="<?= $id; ?>">
+                        <input type="hidden" name="emp_name[]" value="<?= $fullName; ?>">
                     </td>
                     <td>₱<?= number_format($row['rateperday'], 2); ?>
                         <input type="hidden" id="rate_<?= $id; ?>" value="<?= $row['rateperday']; ?>">
+                        <input type="hidden" name="rate_val[]" value="<?= $row['rateperday']; ?>">
                     </td>
                     <td>
                         <input type="number" name="days[]" id="days_<?= $id; ?>" 
@@ -136,18 +145,15 @@ function calculatePayroll(input, id) {
 
     let sss = 0, philhealth = 0, pagibig = 0;
 
-    // Deductions usually applied only once a month or split. 
-    // Here we apply them only on the 1st Half (1-15) as per common practice.
     if (period === "1-15" && gross > 0) {
-        sss = gross * 0.045;             // 4.5% SSS
-        philhealth = gross * 0.02;      // 2% PhilHealth
-        pagibig = gross * 0.02;               // Fixed Pag-IBIG
+        sss = gross * 0.045;
+        philhealth = gross * 0.02;
+        pagibig = gross * 0.03; 
     }
 
     const totalDeductions = sss + philhealth + pagibig;
     const net = gross - totalDeductions;
 
-    // Update Display
     document.getElementById('sss_' + id).value = sss.toFixed(2);
     document.getElementById('philhealth_' + id).value = philhealth.toFixed(2);
     document.getElementById('pagibig_' + id).value = pagibig.toFixed(2);
